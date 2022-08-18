@@ -1,3 +1,5 @@
+pub mod seq;
+
 use std::io::BufRead;
 
 #[derive(PartialEq, Eq, Debug)]
