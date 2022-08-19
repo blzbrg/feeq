@@ -6,10 +6,22 @@ pub mod test_lib;
 
 use std::io::BufRead;
 
+// Debug needed for assert macros
 #[derive(PartialEq, Eq, Debug)]
 pub enum Error {
     UnusableFilename(std::path::PathBuf),
     NoInputFiles,
+}
+
+// This is needed for displaying the error in main
+impl std::fmt::Display for Error {
+    fn fmt(&self, formatter : &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+        match self {
+            Error::UnusableFilename(path) => write!(formatter, "Filename from {} could not be used",
+                                                    path.display()),
+            Error::NoInputFiles => write!(formatter, "No input files were provided"),
+        }
+    }
 }
 
 pub fn read_filenames<E : std::io::Read>(
