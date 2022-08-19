@@ -24,6 +24,14 @@ impl RenamePlan {
         }
         Ok(RenamePlan(acc))
     }
+
+    pub fn execute(&self) -> Result<(), std::io::Error> {
+        let RenamePlan(plan_vec) = self;
+        plan_vec
+            .iter()
+            .try_fold((),
+                      |_, (old_path, new_path)| std::fs::rename(old_path, new_path))
+    }
 }
 
 #[cfg(test)]
