@@ -43,12 +43,9 @@ pub fn find_head<'a, I : Iterator::<Item=&'a Path>>(paths : I) -> Result<Head, s
 
 #[cfg(test)]
 mod tests {
-    use std::path::{PathBuf, Path};
+    use std::path::PathBuf;
+    use crate::test_lib::path_helper;
     use super::{Head, find_head};
-
-    fn path_helper<'a>(paths : &'a [&'a str]) -> std::vec::Vec<&'a Path> {
-        paths.iter().map(Path::new).collect()
-    }
 
     #[test]
     fn find_head_test() {

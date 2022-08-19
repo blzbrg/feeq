@@ -1,5 +1,8 @@
 pub mod seq;
 
+#[cfg(test)]
+pub mod test_lib;
+
 use std::io::BufRead;
 
 #[derive(PartialEq, Eq, Debug)]
