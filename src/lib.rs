@@ -1,4 +1,5 @@
 pub mod seq;
+pub mod rename;
 
 #[cfg(test)]
 pub mod test_lib;
