@@ -27,6 +27,8 @@ impl std::fmt::Display for Error {
 pub struct Config {
     pub show_plan : bool,
     pub execute_plan : bool,
+    pub separator : String,
+
 }
 
 impl std::default::Default for Config {
@@ -34,6 +36,7 @@ impl std::default::Default for Config {
         Self {
             show_plan : true,
             execute_plan : true,
+            separator : String::from("_"),
         }
     }
 }
@@ -52,8 +55,11 @@ pub fn config_args() -> clap::Command<'static> {
              .default_value("true")
              .value_name("BOOLEAN")
              .help("Execute the rename plan. When false, plan is constructed and optionally printed\
-                   according to other args, but never run."))
-
+                    according to other args, but never run."))
+        .arg(clap::Arg::new("separator")
+             .long("separator")
+             .default_value("_")
+             .help("Separator between \"head\" name and original name when renaming."))
 }
 
 impl From<clap::parser::ArgMatches> for Config {
@@ -63,6 +69,9 @@ impl From<clap::parser::ArgMatches> for Config {
                 .expect("show-plan should have clap default"),
             execute_plan : *matches.get_one::<bool>("execute-plan")
                 .expect("execute-plan should have clap default"),
+            separator : matches.get_one::<String>("separator")
+                .expect("separator should have clap default")
+                .clone(),
 
         }
     }
