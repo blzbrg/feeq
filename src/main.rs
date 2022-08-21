@@ -46,7 +46,7 @@ fn main_body() -> Result<(), TopLevelError<'static>> {
         .map_err(|e| TopLevelError::new("No current working directory", e))?;
     let inputs = feeq::read_filenames(&cwd, std::io::stdin())
         .map_err(|e| TopLevelError::new("Could not read paths from stdin", e))?;
-    let head = feeq::seq::find_head(inputs.iter().map(|x| x.as_ref()))
+    let head = feeq::seq::find_head(&conf, inputs.iter().map(|x| x.as_ref()))
         .map_err(|e| TopLevelError::new("Could not select head", e))?;
     let plan = feeq::rename::RenamePlan::create(&conf, &head, inputs.iter().map(|x| x.as_ref()))
         .map_err(|e| TopLevelError::new("Could not create rename plan", e))?;

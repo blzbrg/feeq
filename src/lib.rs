@@ -11,6 +11,7 @@ use std::io::BufRead;
 pub enum Error {
     UnusableFilename(std::path::PathBuf),
     NoInputFiles,
+    MultipleOtherHeads,
 }
 
 // This is needed for displaying the error in main
@@ -20,6 +21,9 @@ impl std::fmt::Display for Error {
             Error::UnusableFilename(path) => write!(formatter, "Filename from {} could not be used",
                                                     path.display()),
             Error::NoInputFiles => write!(formatter, "No input files were provided"),
+            Error::MultipleOtherHeads =>
+                write!(formatter, "Some input files look like they are already part of a sequence. \
+                                   To infer a head, only one existing sequence can be present."),
         }
     }
 }
