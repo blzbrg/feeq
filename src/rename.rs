@@ -63,20 +63,20 @@ mod test {
         // Only absolute paths
         assert_eq!(Ok(RenamePlan(vec![pb_tuple("/foo/a.txt", "/foo/a_a.txt"),
                                       pb_tuple("/foo/b.txt", "/foo/a_b.txt"),])),
-                   RenamePlan::create(&conf, &Head{base : String::from("a"),
-                                                   head_file : PathBuf::from("/foo/a.txt")},
+                   RenamePlan::create(&conf, &Head::from_file(String::from("a"),
+                                                              PathBuf::from("/foo/a.txt")),
                                       path_helper(&["/foo/a.txt", "/foo/b.txt"]).into_iter()));
         // Only relative paths
         assert_eq!(Ok(RenamePlan(vec![pb_tuple("a.txt", "a_a.txt"),
                                       pb_tuple("b.txt", "a_b.txt"),])),
-                   RenamePlan::create(&conf, &Head{base : String::from("a"),
-                                                   head_file : PathBuf::from("a.txt")},
+                   RenamePlan::create(&conf, &Head::from_file(String::from("a"),
+                                                              PathBuf::from("a.txt")),
                                       path_helper(&["a.txt", "b.txt"]).into_iter()));
         // Both relative and absolute paths
         assert_eq!(Ok(RenamePlan(vec![pb_tuple("a.txt", "a_a.txt"),
                                       pb_tuple("/foo/b.txt", "/foo/a_b.txt"),])),
-                   RenamePlan::create(&conf, &Head{base : String::from("a"),
-                                                   head_file : PathBuf::from("a.txt")},
+                   RenamePlan::create(&conf, &Head::from_file(String::from("a"),
+                                                              PathBuf::from("a.txt")),
                                       path_helper(&["a.txt", "/foo/b.txt"]).into_iter()));
         // TODO: test error cases?
     }

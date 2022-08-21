@@ -1,9 +1,25 @@
 use std::path::{PathBuf, Path};
 
 #[derive(PartialEq, Eq, Debug)]
+pub enum HeadSource {
+    InputFile(PathBuf),
+    InferredFromOtherMember(PathBuf),
+}
+
+#[derive(PartialEq, Eq, Debug)]
 pub struct Head {
     pub base : String,
-    pub head_file : PathBuf,
+    pub source : HeadSource,
+}
+
+impl Head {
+    pub fn from_file(base : String, source_file : PathBuf) -> Self {
+        Self {base: base, source: HeadSource::InputFile(source_file)}
+    }
+
+    pub fn from_infer(base : String, infer_file : PathBuf) -> Self {
+        Self {base: base, source: HeadSource::InferredFromOtherMember(infer_file)}
+    }
 }
 
 /// Return the portion of the filename before the first dot, or the entire filename if there is no dot.
@@ -36,7 +52,7 @@ pub fn find_head<'a, I : Iterator::<Item=&'a Path>>(paths : I) -> Result<Head, s
     }
 
     match base_to_file.into_iter().next() {
-        Some((basename, path)) => Ok(Head{base: basename, head_file:path.to_owned()}),
+        Some((basename, path)) => Ok(Head::from_file(basename, path.to_owned())),
         None => Err(super::Error::NoInputFiles),
     }
 }
@@ -52,19 +68,19 @@ mod tests {
         assert_eq!(Err(crate::Error::NoInputFiles),
                    find_head(path_helper(&[]).into_iter()),
                    "No inputs");
-        assert_eq!(Ok(Head{base: "a".to_owned(), head_file: PathBuf::from("/foo/a")}),
+        assert_eq!(Ok(Head::from_file("a".to_owned(), PathBuf::from("/foo/a"))),
                    find_head(path_helper(&["/foo/a"]).into_iter()),
                    "Single path");
-        assert_eq!(Ok(Head{base: "a".to_owned(), head_file: PathBuf::from("/foo/a")}),
+        assert_eq!(Ok(Head::from_file("a".to_owned(), PathBuf::from("/foo/a"))),
                    find_head(path_helper(&["/foo/a", "/foo/b"]).into_iter()),
                    "Two paths in order");
-        assert_eq!(Ok(Head{base: "a".to_owned(), head_file: PathBuf::from("/foo/a")}),
+        assert_eq!(Ok(Head::from_file("a".to_owned(), PathBuf::from("/foo/a"))),
                    find_head(path_helper(&["/foo/b", "/foo/a"]).into_iter()),
                    "Two paths out of order");
-        assert_eq!(Ok(Head{base: "a".to_owned(), head_file: PathBuf::from("a")}),
+        assert_eq!(Ok(Head::from_file("a".to_owned(), PathBuf::from("a"))),
                    find_head(path_helper(&["b", "a"]).into_iter()),
                    "Bare names");
-        assert_eq!(Ok(Head{base: "a".to_owned(), head_file: PathBuf::from("/foo/a")}),
+        assert_eq!(Ok(Head::from_file("a".to_owned(), PathBuf::from("/foo/a"))),
                    find_head(path_helper(&["b", "/foo/a"]).into_iter()),
                    "Mixed path and name");
     }
