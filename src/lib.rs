@@ -24,6 +24,18 @@ impl std::fmt::Display for Error {
     }
 }
 
+pub struct Config {
+    pub show_plan : bool,
+}
+
+impl std::default::Default for Config {
+    fn default() -> Self {
+        Self {
+            show_plan : true,
+        }
+    }
+}
+
 pub fn read_filenames<E : std::io::Read>(
     base_dir : &std::path::Path, readable : E)
     -> Result<std::vec::Vec<std::path::PathBuf>, std::io::Error> { // TODO: avoid vec?
