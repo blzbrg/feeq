@@ -36,6 +36,25 @@ impl std::default::Default for Config {
     }
 }
 
+pub fn config_args() -> clap::Command<'static> {
+    clap::Command::new("feeq")
+        .arg(clap::Arg::new("show-plan")
+             .long("show-plan")
+             .value_parser(clap::builder::BoolValueParser::new())
+             .default_value("true")
+             .value_name("BOOLEAN")
+             .help("Output the rename plan before performing the renames."))
+}
+
+impl From<clap::parser::ArgMatches> for Config {
+    fn from(matches : clap::parser::ArgMatches) -> Self {
+        Config {
+            show_plan : *matches.get_one::<bool>("show-plan")
+                .expect("show-plan should have clap default"),
+        }
+    }
+}
+
 pub fn read_filenames<E : std::io::Read>(
     base_dir : &std::path::Path, readable : E)
     -> Result<std::vec::Vec<std::path::PathBuf>, std::io::Error> { // TODO: avoid vec?
