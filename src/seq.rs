@@ -37,7 +37,7 @@ fn basename(path : &Path) -> Result<String, super::Error> {
 }
 
 /// Infer whether a basename is already a member of a sequence.
-fn infer_membership<'a, 'b>(conf : &'a crate::Config, basename : &'b str) -> Option<&'b str> {
+pub fn infer_membership<'a, 'b>(conf : &'a crate::Config, basename : &'b str) -> Option<&'b str> {
     match basename.split_once(conf.separator.as_str()) {
         Some((head, rest)) => {
             if !(head.is_empty() || rest.is_empty()) {
