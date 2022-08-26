@@ -55,8 +55,12 @@ fn main_body() -> Result<(), TopLevelError<'static>> {
         print!("{}", plan);
     }
 
-    plan.execute()
-        .map_err(|e| TopLevelError::new("Failure while executing rename plan", e))
+    if conf.execute_plan {
+        plan.execute()
+            .map_err(|e| TopLevelError::new("Failure while executing rename plan", e))
+    } else {
+        Ok(())
+    }
 }
 
 pub fn main() {

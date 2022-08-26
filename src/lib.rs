@@ -26,12 +26,14 @@ impl std::fmt::Display for Error {
 
 pub struct Config {
     pub show_plan : bool,
+    pub execute_plan : bool,
 }
 
 impl std::default::Default for Config {
     fn default() -> Self {
         Self {
             show_plan : true,
+            execute_plan : true,
         }
     }
 }
@@ -44,6 +46,14 @@ pub fn config_args() -> clap::Command<'static> {
              .default_value("true")
              .value_name("BOOLEAN")
              .help("Output the rename plan before performing the renames."))
+        .arg(clap::Arg::new("execute-plan")
+             .long("execute-plan")
+             .value_parser(clap::builder::BoolValueParser::new())
+             .default_value("true")
+             .value_name("BOOLEAN")
+             .help("Execute the rename plan. When false, plan is constructed and optionally printed\
+                   according to other args, but never run."))
+
 }
 
 impl From<clap::parser::ArgMatches> for Config {
@@ -51,6 +61,9 @@ impl From<clap::parser::ArgMatches> for Config {
         Config {
             show_plan : *matches.get_one::<bool>("show-plan")
                 .expect("show-plan should have clap default"),
+            execute_plan : *matches.get_one::<bool>("execute-plan")
+                .expect("execute-plan should have clap default"),
+
         }
     }
 }
