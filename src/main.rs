@@ -40,6 +40,8 @@ impl<'a> std::fmt::Display for TopLevelError<'a> {
 
 /// The real meat of main. This is a separate method so that it can use the question-mark early return syntax.
 fn main_body() -> Result<(), TopLevelError<'static>> {
+    let parsed = feeq::config_args().get_matches();
+    let conf = feeq::Config::from(parsed);
     let cwd = std::env::current_dir()
         .map_err(|e| TopLevelError::new("No current working directory", e))?;
     let inputs = feeq::read_filenames(&cwd, std::io::stdin())
@@ -48,8 +50,17 @@ fn main_body() -> Result<(), TopLevelError<'static>> {
         .map_err(|e| TopLevelError::new("Could not select head", e))?;
     let plan = feeq::rename::RenamePlan::create(&head, inputs.iter().map(|x| x.as_ref()))
         .map_err(|e| TopLevelError::new("Could not create rename plan", e))?;
-    plan.execute()
-        .map_err(|e| TopLevelError::new("Failure while executing rename plan", e))
+
+    if conf.show_plan {
+        print!("{}", plan);
+    }
+
+    if conf.execute_plan {
+        plan.execute()
+            .map_err(|e| TopLevelError::new("Failure while executing rename plan", e))
+    } else {
+        Ok(())
+    }
 }
 
 pub fn main() {

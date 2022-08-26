@@ -34,6 +34,15 @@ impl RenamePlan {
     }
 }
 
+impl std::fmt::Display for RenamePlan {
+    fn fmt(&self, formatter : &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+        let RenamePlan(old_new_pairs,) = self;
+        old_new_pairs.iter().try_fold((), |_, (old, new)| {
+            write!(formatter, "Rename {} to {}\r\n", old.display(), new.display())
+        })
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::RenamePlan;
@@ -63,5 +72,15 @@ mod test {
                    RenamePlan::create(&Head{base : String::from("a"), head_file : PathBuf::from("a.txt")},
                                       path_helper(&["a.txt", "/foo/b.txt"]).into_iter()));
         // TODO: test error cases?
+    }
+
+    #[test]
+    fn rename_plan_display_test() {
+        assert_eq!("Rename /foo/a to /foo/a_a\r\n",
+                   format!("{}", RenamePlan(vec![pb_tuple("/foo/a", "/foo/a_a")])));
+        assert_eq!("Rename /foo/a to /foo/a_a\r\nRename /foo/b to /foo/a_b\r\n",
+                   format!("{}", RenamePlan(vec![pb_tuple("/foo/a", "/foo/a_a"),
+                                                 pb_tuple("/foo/b", "/foo/a_b")])));
+
     }
 }
