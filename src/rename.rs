@@ -1,10 +1,10 @@
 use std::path::{Path, PathBuf};
 
-fn new_name(path : &Path, head_name: &str) -> Result<PathBuf, crate::Error> {
+fn new_name(conf : &crate::Config, path : &Path, head_name: &str) -> Result<PathBuf, crate::Error> {
     let file_name : Option<&str> = path.file_name().and_then(std::ffi::OsStr::to_str);
 
     match (file_name, path.parent()) {
-        (Some(s), Some(parent)) => {let new_name = String::from(head_name) + "_" + s;
+        (Some(s), Some(parent)) => {let new_name = String::from(head_name) + &conf.separator + s;
                                     Ok(parent.join(new_name))},
         _ => Err(crate::Error::UnusableFilename(path.to_owned())),
     }
@@ -14,13 +14,23 @@ fn new_name(path : &Path, head_name: &str) -> Result<PathBuf, crate::Error> {
 pub struct RenamePlan (std::vec::Vec<(PathBuf, PathBuf)>); // newtype
 
 impl RenamePlan {
-    pub fn create<'a, I : Iterator::<Item=&'a Path>>(head : &crate::seq::Head, files : I) -> Result<RenamePlan, crate::Error> {
+    pub fn create<'a, I : Iterator::<Item=&'a Path>>(conf : &crate::Config,
+                                                     head : &crate::seq::Head,
+                                                     files : I)
+                                                     -> Result<RenamePlan, crate::Error> {
         let mut acc = vec![];
         for path in files {
-            match new_name(path, &head.base) {
-                Ok(new_path) => acc.push((path.to_owned(), new_path)),
-                Err(e) => return Err(e), // TODO: cleaner error handling
-            };
+            let file_name = path.file_name().and_then(std::ffi::OsStr::to_str)
+                .ok_or_else(|| crate::Error::UnusableFilename(path.to_owned()))?;
+            let inferred_membership = crate::seq::infer_membership(conf, file_name);
+
+            // Skip any files that are already named for the head.
+            if Some(head.base.as_str()) != inferred_membership {
+                match new_name(conf, path, &head.base) {
+                    Ok(new_path) => acc.push((path.to_owned(), new_path)),
+                    Err(e) => return Err(e), // TODO: cleaner error handling
+                };
+            }
         }
         Ok(RenamePlan(acc))
     }
@@ -56,21 +66,33 @@ mod test {
 
     #[test]
     fn rename_plan_create_test() {
+        let conf = crate::Config::default();
         // Only absolute paths
         assert_eq!(Ok(RenamePlan(vec![pb_tuple("/foo/a.txt", "/foo/a_a.txt"),
                                       pb_tuple("/foo/b.txt", "/foo/a_b.txt"),])),
-                   RenamePlan::create(&Head{base : String::from("a"), head_file : PathBuf::from("/foo/a.txt")},
+                   RenamePlan::create(&conf, &Head::from_file(String::from("a"),
+                                                              PathBuf::from("/foo/a.txt")),
                                       path_helper(&["/foo/a.txt", "/foo/b.txt"]).into_iter()));
         // Only relative paths
         assert_eq!(Ok(RenamePlan(vec![pb_tuple("a.txt", "a_a.txt"),
                                       pb_tuple("b.txt", "a_b.txt"),])),
-                   RenamePlan::create(&Head{base : String::from("a"), head_file : PathBuf::from("a.txt")},
+                   RenamePlan::create(&conf, &Head::from_file(String::from("a"),
+                                                              PathBuf::from("a.txt")),
                                       path_helper(&["a.txt", "b.txt"]).into_iter()));
         // Both relative and absolute paths
         assert_eq!(Ok(RenamePlan(vec![pb_tuple("a.txt", "a_a.txt"),
                                       pb_tuple("/foo/b.txt", "/foo/a_b.txt"),])),
-                   RenamePlan::create(&Head{base : String::from("a"), head_file : PathBuf::from("a.txt")},
+                   RenamePlan::create(&conf, &Head::from_file(String::from("a"),
+                                                              PathBuf::from("a.txt")),
                                       path_helper(&["a.txt", "/foo/b.txt"]).into_iter()));
+        // Inferred existing head, merging a new file into it
+        //
+        // Multiple files already in a seq can be given, as long as they are in the same one.
+        assert_eq!(Ok(RenamePlan(vec![pb_tuple("/foo/3.txt", "/foo/a_3.txt")])),
+                   RenamePlan::create(&conf, &Head::from_infer(String::from("a"),
+                                                               PathBuf::from("/foo/a_1.txt")),
+                                      path_helper(&["/foo/a_1.txt", "/foo/3.txt", "/foo/a_2.txt"])
+                                      .into_iter()));
         // TODO: test error cases?
     }
 
