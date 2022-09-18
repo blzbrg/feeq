@@ -67,6 +67,7 @@ pub fn main() {
     // panic! produces distinctly less user friendly output, and returning a Result from main uses Debug instead of Display.
     match main_body() {
         Ok(_) => (),
-        Err(e) => eprintln!("{}", e),
+        Err(e) => {eprintln!("{}", e);
+                   std::process::exit(1);}
     }
 }
