@@ -33,10 +33,10 @@ Rename /3.txt to a_3.txt
 
 Rudimentarily detect when a mixture of sequences are input:
 ```
-$ ls
-a_1.jpg b_2.jpg uh_oh.jpg 3.jpg
-$ ls -1 | feeq
-Could not select head due to: Some input files look like they are already part of a sequence. To infer a head, only one existing sequence can be present.
+$ echo -e "a_b\nc_d\n" | target/debug/feeq --execute-plan false
+Could not select prefix due to: More than one input files look like they are already part of a sequence. These are their names:
+a_b
+c_d
 ```
 
 ## Flags
