@@ -15,7 +15,14 @@ Command-line tool to rename files so that managing and viewing related files is 
 - No mechnisms to "collect" files and then rename them (no state is kept between invocations).
 
 # Usage
+In files named like `a_b`, the "prefix" is "a" and "_" is the "separator".
+
 Give paths as input on stdin, one path per line. Paths can be either an absolute path (starting with `/`), a relative path (starting with `./`), or a filename (no slashes). Relative paths and filenames are interpreted relative to the current-working directory. Note: beware of how this interacts with invoking this program from another program - the CWD may not be what you expect. To avoid confusion, using absolute paths for everything is recommended.
+
+There are effectively two modes to use feeq:
+
+1. When all input files don't have a separator, choose the first filename in alphabetical order and rename all input files accordingly.
+2. When all input files with a separator have the same prefix, rename all remaining files with that prefix.
 
 Hazard alert: do not provide the same file as input twice. This may result in incorrect behavior.
 
@@ -46,7 +53,7 @@ USAGE:
 
 OPTIONS:
         --execute-plan <BOOLEAN>    Execute the rename plan. When false, plan is constructed and
-                                    optionally printedaccording to other args, but never run.
+                                    optionally printed according to other args, but never run.
                                     [default: true] [possible values: true, false]
     -h, --help                      Print help information
         --separator <separator>     Separator between "prefix" name and original name when renaming.
