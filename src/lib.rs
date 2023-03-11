@@ -11,7 +11,7 @@ use std::io::BufRead;
 pub enum Error {
     UnusableFilename(std::path::PathBuf),
     NoInputFiles,
-    MultipleOtherHeads(std::collections::BTreeSet<String>),
+    MultipleOtherPrefix(std::collections::BTreeSet<String>),
 }
 
 // This is needed for displaying the error in main
@@ -21,7 +21,7 @@ impl std::fmt::Display for Error {
             Error::UnusableFilename(path) => write!(formatter, "Filename from {} could not be used",
                                                     path.display()),
             Error::NoInputFiles => write!(formatter, "No input files were provided"),
-            Error::MultipleOtherHeads(names) => {
+            Error::MultipleOtherPrefix(names) => {
                 writeln!(formatter, "More than one input files look like they are already part of a sequence. \
                                      These are their names:")?;
                 for name in names {
@@ -63,12 +63,12 @@ pub fn config_args() -> clap::Command<'static> {
              .value_parser(clap::builder::BoolValueParser::new())
              .default_value("true")
              .value_name("BOOLEAN")
-             .help("Execute the rename plan. When false, plan is constructed and optionally printed\
+             .help("Execute the rename plan. When false, plan is constructed and optionally printed \
                     according to other args, but never run."))
         .arg(clap::Arg::new("separator")
              .long("separator")
              .default_value("_")
-             .help("Separator between \"head\" name and original name when renaming."))
+             .help("Separator between \"prefix\" name and original name when renaming."))
 }
 
 impl From<clap::parser::ArgMatches> for Config {

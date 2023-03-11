@@ -1,8 +1,6 @@
 # Motivation
 Command-line tool to rename files so that managing and viewing related files is easier. In particular, when listed with `ls`, the related files should appear next to eachother. Given files `a`, `b`, and `c` as input, rename them to `a_a`, `a_b`, `a_c`.
 
-The name prefix (sometimes called "headname" in the code) is the basename (filename minus extension) of the first file that does't look like it is already part of a sequence.
-
 ## Goals
 - No complicated or fragile wrappers.
 - No metadata or extra files needed.
@@ -51,7 +49,7 @@ OPTIONS:
                                     optionally printedaccording to other args, but never run.
                                     [default: true] [possible values: true, false]
     -h, --help                      Print help information
-        --separator <separator>     Separator between "head" name and original name when renaming.
+        --separator <separator>     Separator between "prefix" name and original name when renaming.
                                     [default: _]
         --show-plan <BOOLEAN>       Output the rename plan before performing the renames. [default:
                                     true] [possible values: true, false]
