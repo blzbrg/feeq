@@ -19,10 +19,11 @@ In files named like `a_b`, the "prefix" is "a" and "_" is the "separator".
 
 Give paths as input on stdin, one path per line. Paths can be either an absolute path (starting with `/`), a relative path (starting with `./`), or a filename (no slashes). Relative paths and filenames are interpreted relative to the current-working directory. Note: beware of how this interacts with invoking this program from another program - the CWD may not be what you expect. To avoid confusion, using absolute paths for everything is recommended.
 
-There are effectively two modes to use feeq:
+There are effectively three modes to use feeq:
 
 1. When all input files don't have a separator, choose the first filename in alphabetical order and rename all input files accordingly.
 2. When all input files with a separator have the same prefix, rename all remaining files with that prefix.
+3. `--force-prefix` can rename files with different prefixes all to have the same prefix.
 
 Hazard alert: do not provide the same file as input twice. This may result in incorrect behavior.
 
@@ -44,6 +45,19 @@ a_b
 c_d
 ```
 
+## Merge two sequences
+```
+$ ls
+a_1.txt b_2.txt b_3.txt
+$ find . -maxdepth 1 \( -name 'a_*' -o -name 'c_* \) -printf "%P\n" | target/debug/feeq --force-prefix "c"
+Rename /a_1.txt to /c_1.txt
+Rename /b_2.txt to /c_2.txt
+Rename /b_3.txt to /c_3.txt
+```
+Notice that find is being used to find everything currently in the sequences
+
+Can also include files that are not already in a sequence.
+
 ## Flags
 ```
 feeq
@@ -55,6 +69,8 @@ OPTIONS:
         --execute-plan <BOOLEAN>    Execute the rename plan. When false, plan is constructed and
                                     optionally printed according to other args, but never run.
                                     [default: true] [possible values: true, false]
+        --force-prefix <STRING>     Use the given prefix, renaming all files accordingly. Any
+                                    existing prefixes are lost.
     -h, --help                      Print help information
         --separator <separator>     Separator between "prefix" name and original name when renaming.
                                     [default: _]

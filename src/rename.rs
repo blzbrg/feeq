@@ -1,11 +1,23 @@
 use std::path::{Path, PathBuf};
 
+/// Return part of the filename after the separator, unless there is none, then return entire
+/// filename.
+fn minus_prefix<'a, 'b>(conf : &'b crate::Config, filename : &'a str) -> &'a str {
+    match filename.split_once(&conf.separator) {
+        Some((_, rest)) => rest,
+        _ => filename
+    }
+}
+
 fn new_name(conf : &crate::Config, path : &Path, prefix: &str) -> Result<PathBuf, crate::Error> {
     let file_name : Option<&str> = path.file_name().and_then(std::ffi::OsStr::to_str);
 
     match (file_name, path.parent()) {
-        (Some(s), Some(parent)) => {let new_name = String::from(prefix) + &conf.separator + s;
-                                    Ok(parent.join(new_name))},
+        (Some(s), Some(parent)) => {
+            let base = minus_prefix(conf, s);
+            let new_name = String::from(prefix) + &conf.separator + base;
+            Ok(parent.join(new_name))
+        },
         _ => Err(crate::Error::UnusableFilename(path.to_owned())),
     }
 }
@@ -88,6 +100,12 @@ mod test {
                    RenamePlan::create(&conf, "a",
                                       path_helper(&["/foo/a_1.txt", "/foo/3.txt", "/foo/a_2.txt"])
                                       .into_iter()));
+
+        // Rename multiple existing prefixes
+        assert_eq!(Ok(RenamePlan(vec![pb_tuple("/foo/a_1.txt", "/foo/new_1.txt"),
+                                      pb_tuple("/foo/b_2.txt", "/foo/new_2.txt")])),
+                   RenamePlan::create(&conf, "new",
+                                      path_helper(&["/foo/a_1.txt", "/foo/b_2.txt"]).into_iter()));
         // TODO: test error cases?
     }
 
