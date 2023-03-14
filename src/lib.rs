@@ -11,7 +11,7 @@ use std::io::BufRead;
 pub enum Error {
     UnusableFilename(std::path::PathBuf),
     NoInputFiles,
-    MultipleOtherHeads,
+    MultipleOtherPrefix(std::collections::BTreeSet<String>),
 }
 
 // This is needed for displaying the error in main
@@ -21,9 +21,14 @@ impl std::fmt::Display for Error {
             Error::UnusableFilename(path) => write!(formatter, "Filename from {} could not be used",
                                                     path.display()),
             Error::NoInputFiles => write!(formatter, "No input files were provided"),
-            Error::MultipleOtherHeads =>
-                write!(formatter, "Some input files look like they are already part of a sequence. \
-                                   To infer a head, only one existing sequence can be present."),
+            Error::MultipleOtherPrefix(names) => {
+                writeln!(formatter, "More than one input files look like they are already part of a sequence. \
+                                     These are their names:")?;
+                for name in names {
+                    write!(formatter, "{}\n", name)?;
+                }
+                Ok(())
+            }
         }
     }
 }
@@ -32,7 +37,7 @@ pub struct Config {
     pub show_plan : bool,
     pub execute_plan : bool,
     pub separator : String,
-
+    pub force_prefix : Option<String>,
 }
 
 impl std::default::Default for Config {
@@ -41,6 +46,7 @@ impl std::default::Default for Config {
             show_plan : true,
             execute_plan : true,
             separator : String::from("_"),
+            force_prefix : None,
         }
     }
 }
@@ -58,12 +64,16 @@ pub fn config_args() -> clap::Command<'static> {
              .value_parser(clap::builder::BoolValueParser::new())
              .default_value("true")
              .value_name("BOOLEAN")
-             .help("Execute the rename plan. When false, plan is constructed and optionally printed\
+             .help("Execute the rename plan. When false, plan is constructed and optionally printed \
                     according to other args, but never run."))
         .arg(clap::Arg::new("separator")
              .long("separator")
              .default_value("_")
-             .help("Separator between \"head\" name and original name when renaming."))
+             .help("Separator between \"prefix\" name and original name when renaming."))
+        .arg(clap::Arg::new("force-prefix")
+             .long("force-prefix")
+             .value_name("STRING")
+             .help("Use the given prefix, renaming all files accordingly. Any existing prefixes are lost."))
 }
 
 impl From<clap::parser::ArgMatches> for Config {
@@ -76,7 +86,8 @@ impl From<clap::parser::ArgMatches> for Config {
             separator : matches.get_one::<String>("separator")
                 .expect("separator should have clap default")
                 .clone(),
-
+            force_prefix : matches.get_one::<String>("force-prefix")
+                .and_then(|s| Some(s.clone())),
         }
     }
 }
